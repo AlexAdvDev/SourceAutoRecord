@@ -262,12 +262,21 @@ void Crosshair::Paint(int slot) {
 		Color pbody_sec  { 106,   1,   1 };
 
 		if (sar_portalcolor_enable.GetBool()) {
-			blue       = Utils::GetColor(sar_portalcolor_sp_1.GetString()).value_or(blue);
-			orange     = Utils::GetColor(sar_portalcolor_sp_2.GetString()).value_or(orange);
-			atlas_prim = Utils::GetColor(sar_portalcolor_mp1_1.GetString()).value_or(atlas_prim);
-			atlas_sec  = Utils::GetColor(sar_portalcolor_mp1_2.GetString()).value_or(atlas_sec);
-			pbody_prim = Utils::GetColor(sar_portalcolor_mp2_1.GetString()).value_or(pbody_prim);
-			pbody_sec  = Utils::GetColor(sar_portalcolor_mp2_2.GetString()).value_or(pbody_sec);
+#define COLORADJUST(cvar, col) \
+			auto cvar = Utils::GetColor(sar_portalcolor_##cvar.GetString()); \
+			col = cvar.value_or(col); \
+			if (cvar.has_value()) { \
+				if (col.r > 4) col.r = col.r * 0.75f + 64; \
+				if (col.g > 4) col.g = col.g * 0.75f + 64; \
+				if (col.b > 4) col.b = col.b * 0.75f + 64; \
+			};
+			COLORADJUST(sp_1, blue);
+			COLORADJUST(sp_2, orange);
+			COLORADJUST(mp1_1, atlas_prim);
+			COLORADJUST(mp1_2, atlas_sec);
+			COLORADJUST(mp2_1, pbody_prim);
+			COLORADJUST(mp2_2, pbody_sec);
+#undef COLORADJUST
 		}
 
 		Color real_prim = slot == 1 ? pbody_prim : engine->IsCoop() ? atlas_prim : blue;
