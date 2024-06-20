@@ -261,6 +261,15 @@ void Crosshair::Paint(int slot) {
 		Color pbody_prim { 255, 199,  86 };
 		Color pbody_sec  { 106,   1,   1 };
 
+		if (sar_portalcolor_enable.GetBool()) {
+			blue       = Utils::GetColor(sar_portalcolor_sp_1.GetString()).value_or(blue);
+			orange     = Utils::GetColor(sar_portalcolor_sp_2.GetString()).value_or(orange);
+			atlas_prim = Utils::GetColor(sar_portalcolor_mp1_1.GetString()).value_or(atlas_prim);
+			atlas_sec  = Utils::GetColor(sar_portalcolor_mp1_2.GetString()).value_or(atlas_sec);
+			pbody_prim = Utils::GetColor(sar_portalcolor_mp2_1.GetString()).value_or(pbody_prim);
+			pbody_sec  = Utils::GetColor(sar_portalcolor_mp2_2.GetString()).value_or(pbody_sec);
+		}
+
 		Color real_prim = slot == 1 ? pbody_prim : engine->IsCoop() ? atlas_prim : blue;
 		Color real_sec  = slot == 1 ? pbody_sec  : engine->IsCoop() ? atlas_sec  : orange;
 
