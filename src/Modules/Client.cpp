@@ -312,6 +312,42 @@ DETOUR_COMMAND(Client::openleaderboard) {
 	}
 }
 
+Variable sar_portalcolor_enable("sar_portalcolor_enable", "0", "Enable custom portal colors.\n");
+Variable sar_portalcolor_sp_1("sar_portalcolor_sp_1", "64 160 255", "Portal color for Chell's left portal.\n");
+Variable sar_portalcolor_sp_2("sar_portalcolor_sp_2", "255 160 32", "Portal color for Chell's right portal.\n");
+Variable sar_portalcolor_mp1_1("sar_portalcolor_mp1_1", "31 127 210", "Portal color for Atlas (blue)'s left portal.\n");
+Variable sar_portalcolor_mp1_2("sar_portalcolor_mp1_2", "19 0 210",   "Portal color for Atlas (blue)'s right portal.\n");
+Variable sar_portalcolor_mp2_1("sar_portalcolor_mp2_1", "255 179 31", "Portal color for P-Body (orange)'s left portal.\n");
+Variable sar_portalcolor_mp2_2("sar_portalcolor_mp2_2", "57 2 2",     "Portal color for P-Body (orange)'s right portal.\n");
+
+static SourceColor (*UTIL_Portal_Color)(int iPortal, int iTeamNumber);
+extern Hook UTIL_Portal_Color_Hook;
+static SourceColor UTIL_Portal_Color_Detour(int iPortal, int iTeamNumber) {
+	// FIXME: SP portal rendering does not use this but rather the
+	// texture's color itself. This does however work on the color
+	// of the SP *crosshair*.
+	UTIL_Portal_Color_Hook.Disable();
+	SourceColor ret = UTIL_Portal_Color(iPortal, iTeamNumber);
+	UTIL_Portal_Color_Hook.Enable();
+
+	if (sar_portalcolor_enable.GetBool()) {
+		std::optional<Color> modify;
+		// Yes, blue and orange are swapped. Mhm.
+		// Also 1 is unused.
+		if (iTeamNumber == 0) {
+			modify = Utils::GetColor(iPortal == 1 ? sar_portalcolor_sp_1.GetString() : sar_portalcolor_sp_2.GetString());
+		} else if (iTeamNumber == 2) {
+			modify = Utils::GetColor(iPortal == 1 ? sar_portalcolor_mp2_1.GetString() : sar_portalcolor_mp2_2.GetString());
+		} else if (iTeamNumber == 3) {
+			modify = Utils::GetColor(iPortal == 1 ? sar_portalcolor_mp1_1.GetString() : sar_portalcolor_mp1_2.GetString());
+		}
+		if (modify.has_value()) ret = SourceColor(modify.value().r, modify.value().g, modify.value().b);
+	}
+
+	return ret;
+}
+Hook UTIL_Portal_Color_Hook(&UTIL_Portal_Color_Detour);
+
 ON_INIT {
 	NetMessage::RegisterHandler(LEADERBOARD_MESSAGE_TYPE, +[](const void *data, size_t size) {
 		// TODO: Investigate why this sometimes doesn't work - AMJ 2024-04-25
@@ -993,6 +1029,17 @@ bool Client::Init() {
 		}
 #endif
 	}
+
+#ifdef _WIN32
+	UTIL_Portal_Color = (decltype (UTIL_Portal_Color))Memory::Scan(client->Name(), "55 8B EC 56 8B 75 ? 85 F6 0F 84 ? ? ? ? 0F 8E");
+	// UTIL_Portal_Color_Particles = "55 8B EC 51 8B 0D ? ? ? ? 8B 01 8B 90 ? ? ? ? FF D2 84 C0"
+#else
+	try {
+		UTIL_Portal_Color = (decltype (UTIL_Portal_Color))Memory::Scan(client->Name(), "56 53 83 EC 04 8B 44 24 ? 8B 74 24 ? 85 C0 74 ? 8D 58");
+		// UTIL_Portal_Color_Particles = "53 83 EC 14 A1 ? ? ? ? 8B 5C 24 ? 8B 10 50 FF 92 ? ? ? ? 83 C4 10 84 C0 75"
+	} catch (...) {} // Too lazy to check mods
+#endif
+	UTIL_Portal_Color_Hook.SetFunc(UTIL_Portal_Color);
 
 	g_AddShadowToReceiverHook.SetFunc(Client::AddShadowToReceiver);
 
