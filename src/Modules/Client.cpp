@@ -74,6 +74,14 @@ Variable sar_patch_minor_angle_decay("sar_patch_minor_angle_decay", "0", "Patche
 
 Variable sar_unlocked_chapters("sar_unlocked_chapters", "-1", "Max unlocked chapter.\n");
 
+Variable sar_portalcolor_enable("sar_portalcolor_enable", "0", "Enable custom portal colors.\n");
+Variable sar_portalcolor_sp_1("sar_portalcolor_sp_1", "64 160 255", "Portal color for Chell's left portal.\n");
+Variable sar_portalcolor_sp_2("sar_portalcolor_sp_2", "255 160 32", "Portal color for Chell's right portal.\n");
+Variable sar_portalcolor_mp1_1("sar_portalcolor_mp1_1", "31 127 210", "Portal color for Atlas (blue)'s left portal.\n");
+Variable sar_portalcolor_mp1_2("sar_portalcolor_mp1_2", "19 0 210",   "Portal color for Atlas (blue)'s right portal.\n");
+Variable sar_portalcolor_mp2_1("sar_portalcolor_mp2_1", "255 179 31", "Portal color for P-Body (orange)'s left portal.\n");
+Variable sar_portalcolor_mp2_2("sar_portalcolor_mp2_2", "57 2 2",     "Portal color for P-Body (orange)'s right portal.\n");
+
 REDECL(Client::LevelInitPreEntity);
 REDECL(Client::CreateMove);
 REDECL(Client::CreateMove2);
@@ -318,14 +326,6 @@ static Color portalcolors[4][2] = {
 	{{0, 0, 0}, {0, 0, 0}},
 	{{0, 0, 0}, {0, 0, 0}},
 };
-
-Variable sar_portalcolor_enable("sar_portalcolor_enable", "0", "Enable custom portal colors.\n");
-Variable sar_portalcolor_sp_1("sar_portalcolor_sp_1", "64 160 255", "Portal color for Chell's left portal.\n");
-Variable sar_portalcolor_sp_2("sar_portalcolor_sp_2", "255 160 32", "Portal color for Chell's right portal.\n");
-Variable sar_portalcolor_mp1_1("sar_portalcolor_mp1_1", "31 127 210", "Portal color for Atlas (blue)'s left portal.\n");
-Variable sar_portalcolor_mp1_2("sar_portalcolor_mp1_2", "19 0 210",   "Portal color for Atlas (blue)'s right portal.\n");
-Variable sar_portalcolor_mp2_1("sar_portalcolor_mp2_1", "255 179 31", "Portal color for P-Body (orange)'s left portal.\n");
-Variable sar_portalcolor_mp2_2("sar_portalcolor_mp2_2", "57 2 2",     "Portal color for P-Body (orange)'s right portal.\n");
 
 static SourceColor (*UTIL_Portal_Color)(int iPortal, int iTeamNumber);
 extern Hook UTIL_Portal_Color_Hook;
