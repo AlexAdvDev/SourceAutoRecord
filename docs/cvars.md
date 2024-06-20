@@ -387,6 +387,7 @@
 |sar_pause_for|0|Pause for this amount of ticks.|
 |sar_pip_align|cmd|sar_pip_align \<top\|center\|bottom> \<left\|center\|right> - aligns the remote view.|
 |sar_placement_helper_hud|0|Visually displays all portal placement helpers (requires sv_cheats).|
+|sar_portalcolor_debug|cmd|sar_portalcolor_debug - Prints the current portal colors.|
 |sar_portalcolor_enable|0|Enable custom portal colors.|
 |sar_portalcolor_mp1_1|31 127 210|Portal color for Atlas (blue)'s left portal.|
 |sar_portalcolor_mp1_2|19 0 210|Portal color for Atlas (blue)'s right portal.|

@@ -312,6 +312,13 @@ DETOUR_COMMAND(Client::openleaderboard) {
 	}
 }
 
+static Color portalcolors[4][2] = {
+	{{0, 0, 0}, {0, 0, 0}},
+	{{0, 0, 0}, {0, 0, 0}},
+	{{0, 0, 0}, {0, 0, 0}},
+	{{0, 0, 0}, {0, 0, 0}},
+};
+
 Variable sar_portalcolor_enable("sar_portalcolor_enable", "0", "Enable custom portal colors.\n");
 Variable sar_portalcolor_sp_1("sar_portalcolor_sp_1", "64 160 255", "Portal color for Chell's left portal.\n");
 Variable sar_portalcolor_sp_2("sar_portalcolor_sp_2", "255 160 32", "Portal color for Chell's right portal.\n");
@@ -344,9 +351,53 @@ static SourceColor UTIL_Portal_Color_Detour(int iPortal, int iTeamNumber) {
 		if (modify.has_value()) ret = SourceColor(modify.value().r, modify.value().g, modify.value().b);
 	}
 
+	// Cache it for debugging
+	portalcolors[iTeamNumber][iPortal - 1] = Color(ret.r(), ret.g(), ret.b());
 	return ret;
 }
 Hook UTIL_Portal_Color_Hook(&UTIL_Portal_Color_Detour);
+
+CON_COMMAND(sar_portalcolor_debug, "sar_portalcolor_debug - Prints the current portal colors.\n") {
+	if (engine->GetCurrentMapName().size() == 0) {
+		console->Print("This command can only be used in-game.\n");
+		return;
+	};
+
+	for (int i = 0; i < 4; ++i) {
+		if (i == 1) continue;
+		console->Print("Team %d:\n", i);
+		for (int j = 0; j < 2; ++j) {
+			UTIL_Portal_Color(j + 1, i);
+			console->Print("  Portal %d: %03d %03d %03d - ", j + 1, portalcolors[i][j].r, portalcolors[i][j].g, portalcolors[i][j].b);
+			console->ColorMsg(portalcolors[i][j], "█████\n");
+		}
+	}
+
+	Color chell1 = Utils::GetColor(sar_portalcolor_sp_1.GetString()).value_or(Color(255, 255, 255));
+	Color chell2 = Utils::GetColor(sar_portalcolor_sp_2.GetString()).value_or(Color(255, 255, 255));
+	Color atlas1 = Utils::GetColor(sar_portalcolor_mp1_1.GetString()).value_or(Color(255, 255, 255));
+	Color atlas2 = Utils::GetColor(sar_portalcolor_mp1_2.GetString()).value_or(Color(255, 255, 255));
+	Color pbody1 = Utils::GetColor(sar_portalcolor_mp2_1.GetString()).value_or(Color(255, 255, 255));
+	Color pbody2 = Utils::GetColor(sar_portalcolor_mp2_2.GetString()).value_or(Color(255, 255, 255));
+
+	console->Print("ChellL - %s - ", sar_portalcolor_sp_1.GetString());
+	console->ColorMsg(chell1, "█████\n");
+
+	console->Print("ChellR - %s - ", sar_portalcolor_sp_2.GetString());
+	console->ColorMsg(chell2, "█████\n");
+
+	console->Print("AtlasL - %s - ", sar_portalcolor_mp1_1.GetString());
+	console->ColorMsg(atlas1, "█████\n");
+
+	console->Print("AtlasR - %s - ", sar_portalcolor_mp1_2.GetString());
+	console->ColorMsg(atlas2, "█████\n");
+
+	console->Print("PBodyL - %s - ", sar_portalcolor_mp2_1.GetString());
+	console->ColorMsg(pbody1, "█████\n");
+
+	console->Print("PBodyR - %s - ", sar_portalcolor_mp2_2.GetString());
+	console->ColorMsg(pbody2, "█████\n");
+}
 
 ON_INIT {
 	NetMessage::RegisterHandler(LEADERBOARD_MESSAGE_TYPE, +[](const void *data, size_t size) {
