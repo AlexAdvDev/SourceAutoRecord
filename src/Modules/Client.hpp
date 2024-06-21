@@ -199,12 +199,4 @@ extern Variable say;
 
 extern Command sar_workshop_skip;
 
-extern Variable sar_portalcolor_enable;
-extern Variable sar_portalcolor_sp_1;
-extern Variable sar_portalcolor_sp_2;
-extern Variable sar_portalcolor_mp1_1;
-extern Variable sar_portalcolor_mp1_2;
-extern Variable sar_portalcolor_mp2_1;
-extern Variable sar_portalcolor_mp2_2;
-
 extern Color SARUTIL_Portal_Color(int iPortal, int iTeamNumber);
