@@ -262,6 +262,8 @@ void Crosshair::Paint(int slot) {
 		Color pbody_sec  { 106,   1,   1 };
 
 		if (sar_portalcolor_enable.GetBool()) {
+			// HACKHACK: Stupid color adjustment to match vanilla crosshair
+			// https://www.desmos.com/calculator/7gd17bkmos
 #define COLORADJUST(cvar, col) \
 			auto cvar = Utils::GetColor(sar_portalcolor_##cvar.GetString()); \
 			col = cvar.value_or(col); \
