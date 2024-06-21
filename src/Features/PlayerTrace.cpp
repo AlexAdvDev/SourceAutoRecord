@@ -464,21 +464,12 @@ void PlayerTrace::DrawPortalsAt(int tick) const {
 			localtick = trace.portals.size()-1;
 
 		// Draw portals
-		Color blue       { 111, 184, 255, 255 };
-		Color orange     { 255, 184,  86, 255 };
-		Color atlas_prim {  32, 128, 210, 255 };
-		Color atlas_sec  {  16,   0, 210, 255 };
-		Color pbody_prim { 255, 180,  32, 255 };
-		Color pbody_sec  {  58,   3,   3, 255 };
-
-		if (sar_portalcolor_enable.GetBool()) {
-			blue       = Utils::GetColor(sar_portalcolor_sp_1.GetString()).value_or(blue);
-			orange     = Utils::GetColor(sar_portalcolor_sp_2.GetString()).value_or(orange);
-			atlas_prim = Utils::GetColor(sar_portalcolor_mp1_1.GetString()).value_or(atlas_prim);
-			atlas_sec  = Utils::GetColor(sar_portalcolor_mp1_2.GetString()).value_or(atlas_sec);
-			pbody_prim = Utils::GetColor(sar_portalcolor_mp2_1.GetString()).value_or(pbody_prim);
-			pbody_sec  = Utils::GetColor(sar_portalcolor_mp2_2.GetString()).value_or(pbody_sec);
-		}
+		Color blue       = SARUTIL_Portal_Color(1, 0);
+		Color orange     = SARUTIL_Portal_Color(2, 0);
+		Color atlas_prim = SARUTIL_Portal_Color(1, 3);
+		Color atlas_sec  = SARUTIL_Portal_Color(2, 3);
+		Color pbody_prim = SARUTIL_Portal_Color(1, 2);
+		Color pbody_sec  = SARUTIL_Portal_Color(2, 2);
 
 		auto drawPortal = [&](Color portalColor, Vector origin, QAngle angles) {
 			portalColor.a = (uint8_t)sar_trace_portal_opacity.GetInt();
