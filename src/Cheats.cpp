@@ -2,7 +2,6 @@
 
 #include "Event.hpp"
 #include "Features/AutoSubmit.hpp"
-#include "Features/AutoSubmitMod.hpp"
 #include "Features/Cvars.hpp"
 #include "Features/Hud/Hud.hpp"
 #include "Features/Hud/InspectionHud.hpp"
@@ -29,6 +28,7 @@
 Variable sar_autorecord("sar_autorecord", "0", -1, 1, "Enables or disables automatic demo recording.\n");
 Variable sar_autojump("sar_autojump", "0", "Enables automatic jumping on the server.\n");
 Variable sar_autostrafe("sar_autostrafe", "0", "Automatically strafes in your current wishdir.\n");
+Variable sar_ensure_slope_boost("sar_ensure_slope_boost", "0", "Ensures a successful slope boost.\n");
 Variable sar_jumpboost("sar_jumpboost", "0", 0,
                        "Enables special game movement on the server.\n"
                        "0 = Default,\n"
@@ -92,26 +92,16 @@ CON_COMMAND(sar_autoaim_point, "sar_autoaim_point <x> <y> <z> - automatically ai
 	engine->ExecuteCommand(Utils::ssprintf("setang %f %f\n", pitch, yaw).c_str());
 }
 
-// P2, INFRA and HL2 only
-#ifdef _WIN32
-#	define TRACE_SHUTDOWN_PATTERN "6A 00 68 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? "
-#	define TRACE_SHUTDOWN_OFFSET1 3
-#	define TRACE_SHUTDOWN_OFFSET2 10
-#else
-#	define TRACE_SHUTDOWN_PATTERN "C7 44 24 04 00 00 00 00 C7 04 24 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? C7"
-#	define TRACE_SHUTDOWN_OFFSET1 11
-#	define TRACE_SHUTDOWN_OFFSET2 10
-#endif
 CON_COMMAND(sar_delete_alias_cmds, "sar_delete_alias_cmds - deletes all alias commands\n") {
 	using _Cmd_Shutdown = int (*)();
 	static _Cmd_Shutdown Cmd_Shutdown = nullptr;
 
 	if (!Cmd_Shutdown) {
-		auto result = Memory::MultiScan(engine->Name(), TRACE_SHUTDOWN_PATTERN, TRACE_SHUTDOWN_OFFSET1);
+		auto result = Memory::MultiScan(engine->Name(), Offsets::Cmd_ShutdownSig, Offsets::Cmd_ShutdownOff);
 		if (!result.empty()) {
 			for (auto const &addr : result) {
 				if (!std::strcmp(*reinterpret_cast<char **>(addr), "Cmd_Shutdown()")) {
-					Cmd_Shutdown = Memory::Read<_Cmd_Shutdown>(addr + TRACE_SHUTDOWN_OFFSET2);
+					Cmd_Shutdown = Memory::Read<_Cmd_Shutdown>(addr + Offsets::Cmd_ShutdownOff2);
 					break;
 				}
 			}
@@ -304,16 +294,12 @@ CON_COMMAND(sar_geteyepos, "sar_geteyepos [slot] - get the view position (portal
 	console->Print("angles: %.6f %.6f %.6f\n", angles.x, angles.y, angles.z);
 }
 
-CON_COMMAND_F(sar_challenge_autosubmit_reload_api_key, "sar_challenge_autosubmit_reload_api_key - reload the board.portal2.sr API key from its file.\n", FCVAR_DONTRECORD) {
+CON_COMMAND_F(sar_challenge_autosubmit_reload_api_key, "sar_challenge_autosubmit_reload_api_key - reload the boards API key from its file.\n", FCVAR_DONTRECORD) {
 	if (args.ArgC() != 1) {
 		return console->Print(sar_challenge_autosubmit_reload_api_key.ThisPtr()->m_pszHelpString);
 	}
 
-	if (sar.game->Is(SourceGame_PortalStoriesMel)) {
-		AutoSubmitMod::LoadApiKey(true);
-	} else {
-		AutoSubmit::LoadApiKey(true);
-	}
+	AutoSubmit::LoadApiKey(true);
 }
 
 void Cheats::Init() {
@@ -433,4 +419,30 @@ void Cheats::AutoStrafe(int slot, void *player, CUserCmd *cmd) {
 		fb.moveAnalog.y *= 2;
 	}
 	tasPlayer->ApplyMoveAnalog(fb.moveAnalog, cmd);
+}
+
+void Cheats::EnsureSlopeBoost(const CHLMoveData *move, void *player, CGameTrace **tr) {
+	if ((*tr) == NULL) {
+		return;
+	}
+	
+	if (!server->AllowsMovementChanges() || !sar_ensure_slope_boost.GetBool()) {
+		return;
+	}
+
+	Vector velocity = move->m_vecVelocity;
+	Vector hitNormal = (*tr)->plane.normal; 
+	
+	bool goingDown = velocity.z < 0;
+	bool isntAlreadyGrounded = !(SE(player)->ground_entity());
+	bool landedOnSlope = hitNormal.z < 1.0f;
+	bool wantsToSnapToGround = (*tr)->fraction >= 0.000001f;
+	bool boostingTowardsVelocity = hitNormal.x * velocity.x + hitNormal.y * velocity.y >= 0;
+
+	if (goingDown && isntAlreadyGrounded && landedOnSlope && wantsToSnapToGround && boostingTowardsVelocity) {
+		// Nulling out pointer by reference, so that it's passed in CGameMovement::SetGroundEntity, 
+		// preventing being grounded on this call, letting the player to boost off slope
+		*tr = NULL;
+	}
+
 }

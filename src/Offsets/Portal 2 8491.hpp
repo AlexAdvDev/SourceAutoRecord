@@ -114,6 +114,7 @@ OFFSET_DEFAULT(CheckJumpButton, 36, 37)
 OFFSET_DEFAULT(FullTossMove, -1, 38)
 OFFSET_DEFAULT(TryPlayerMove, 39, 40)
 OFFSET_DEFAULT(CheckStuck, 47, 48)
+OFFSET_DEFAULT(SetGroundEntity, 69, 70)
 OFFSET_DEFAULT(StepMove, 70, 71)
 OFFSET_DEFAULT(mv, 8, 8)
 OFFSET_DEFAULT(player, 4, 4)
@@ -143,6 +144,7 @@ OFFSET_DEFAULT(m_szFileName, 4, 4)
 
 // CClientState
 OFFSET_DEFAULT(ProcessTick, 1, 12)
+OFFSET_DEFAULT(IServerMessageHandler, 8, -1)
 OFFSET_DEFAULT(Disconnect, 16, 37)
 OFFSET_DEFAULT(viewangles, 19040, 19012)
 
@@ -412,6 +414,8 @@ SIGSCAN_DEFAULT(OnEvent, "55 8B EC 57 8B F9 8B 4D 08 E8",
                          "55 89 E5 57 56 53 83 EC 1C 8B 45 0C 8B 7D 08 89 04 24 E8 ? ? ? ? C7 04 24")
 SIGSCAN_DEFAULT(OnCommand, "55 8B EC 56 57 8B 7D 08 57 68 ? ? ? ? 8B F1 E8 ? ? ? ? 83 C4 08 85 C0 0F 84",
                            "55 89 E5 57 56 53 83 EC 2C 8B 75 0C C7 04 24 ? ? ? ? 8B 5D 08 89 74 24 04 E8 ? ? ? ? 85 C0 75 3D")
+SIGSCAN_EMPTY(GetHudSig)
+SIGSCAN_EMPTY(FindElementSig)
 
 SIGSCAN_DEFAULT(GetChapterProgress, "56 8B 35 ? ? ? ? 57 8B F9 FF D6 8B 10 8B C8",
                                     "55 89 E5 57 56 53 83 EC 0C E8 ? ? ? ? 83 EC 08 8B 10")
@@ -436,6 +440,10 @@ SIGSCAN_DEFAULT(InsertCommand, "55 8B EC 56 57 8B 7D ? 8B F1 81 FF FF 01 00 00",
                                "55 57 56 53 83 EC 1C 8B 6C 24 ? 8B 5C 24 ? 8B 74 24 ? 81 FD FE 01 00 00") // "WARNING: Command too long... ignoring!\n%s\n"
 SIGSCAN_DEFAULT(Convar_PrintDescription, "25 2D 38 30 73 20 2D 20 25 2E 38 30 73 0A 00",
                                          "25 2D 38 30 73 20 2D 20 25 2E 38 30 73 0A 00") // "%-80s - %.80s\n"
+SIGSCAN_DEFAULT(Cmd_ShutdownSig, "6A 00 68 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ?",
+                                 "C7 44 24 04 00 00 00 00 C7 04 24 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? C7")
+OFFSET_DEFAULT(Cmd_ShutdownOff, 3, 11)
+OFFSET_DEFAULT(Cmd_ShutdownOff2, 10, 10)
 
 
 // EngineDemoPlayer

@@ -4,7 +4,7 @@
 #include "Console.hpp"
 #include "Engine.hpp"
 #include "Event.hpp"
-#include "Features/AutoSubmitMod.hpp"
+#include "Features/AutoSubmit.hpp"
 #include "Features/Camera.hpp"
 #include "Features/Demo/DemoGhostPlayer.hpp"
 #include "Features/Demo/NetworkGhostPlayer.hpp"
@@ -176,11 +176,13 @@ bool Client::ShouldDrawCrosshair() {
 static std::deque<Color> g_nameColorOverrides;
 
 void Client::Chat(Color col, const char *str) {
+	if (!client->ChatPrintf) return;
 	g_nameColorOverrides.push_back(col);
 	client->ChatPrintf(client->g_HudChat->ThisPtr(), 0, 0, "%c%s", TextColor::PLAYERNAME, str);
 }
 
 void Client::MultiColorChat(const std::vector<std::pair<Color, std::string>> &components) {
+	if (!client->ChatPrintf) return;
 	// this sucks, but because c varargs are stupid, we have to construct a *format* string containing what we want (escaping any % signs)
 	std::string fmt = "";
 
@@ -239,6 +241,7 @@ void Client::ClFrameStageNotify(int stage) {
 }
 
 void Client::OpenChat() {
+	if (!this->StartMessageMode) return;
 	this->StartMessageMode(this->g_HudChat->ThisPtr(), 1);  // MM_SAY
 }
 
@@ -250,15 +253,14 @@ DETOUR(Client::LevelInitPreEntity, const char *levelName) {
 
 // ClientModeShared::CreateMove
 DETOUR(Client::CreateMove, float flInputSampleTime, CUserCmd *cmd) {
+	int slot = engine->IsOrange() ? 1 : 0;
 	if (!in_forceuser.isReference || (in_forceuser.isReference && !in_forceuser.GetBool())) {
-		if (engine->IsCoop() && engine->IsOrange())
-			inputHud.SetInputInfo(1, cmd->buttons, {cmd->sidemove, cmd->forwardmove, cmd->upmove});
-		else
-			inputHud.SetInputInfo(0, cmd->buttons, {cmd->sidemove, cmd->forwardmove, cmd->upmove});
+		inputHud.SetInputInfo(engine->IsCoop() ? slot : 0, cmd->buttons, {cmd->sidemove, cmd->forwardmove, cmd->upmove});
 	}
 
 	if (sv_cheats.GetBool() && engine->hoststate->m_activeGame) {
 		camera->OverrideMovement(cmd);
+		Stitcher::OverrideMovement(cmd);
 	}
 
 	if (GhostEntity::GetFollowTarget()) {
@@ -268,23 +270,17 @@ DETOUR(Client::CreateMove, float flInputSampleTime, CUserCmd *cmd) {
 		cmd->upmove = 0;
 	}
 
-	if (engine->hoststate->m_activeGame) {
-		Stitcher::OverrideMovement(cmd);
-	}
-
 	if (sar_strafesync.GetBool()) {
-		synchro->UpdateSync(engine->IsOrange() ? 1 : 0, cmd);
+		synchro->UpdateSync(slot, cmd);
 	}
 
-	strafeQualityHud->OnUserCmd(engine->IsOrange() ? 1 : 0, *cmd);
+	strafeQualityHud->OnUserCmd(slot, *cmd);
 
 	if (cmd->buttons & IN_ATTACK) {
-		int slot = engine->IsOrange() ? 1 : 0;
 		g_bluePortalAngles[slot] = engine->GetAngles(slot);
 	}
 
 	if (cmd->buttons & IN_ATTACK2) {
-		int slot = engine->IsOrange() ? 1 : 0;
 		g_orangePortalAngles[slot] = engine->GetAngles(slot);
 	}
 
@@ -816,7 +812,7 @@ DETOUR(Client::StartSearching) {
 		char m_szMapName[128];
 	};
 
-	AutoSubmitMod::Search(((CPortalLeaderboard *)thisptr)->m_szMapName);
+	AutoSubmit::Search(((CPortalLeaderboard *)thisptr)->m_szMapName);
 
 	return 0;
 }
@@ -854,7 +850,7 @@ Hook g_PurgeAndDeleteElementsHook(&Client::PurgeAndDeleteElements_Hook);
 
 extern Hook g_IsQueryingHook;
 DETOUR(Client::IsQuerying) {
-	return AutoSubmitMod::IsQuerying();
+	return AutoSubmit::IsQuerying();
 }
 Hook g_IsQueryingHook(&Client::IsQuerying_Hook);
 
@@ -864,7 +860,7 @@ DETOUR(Client::SetPanelStats) {
 	void *m_pStatList = *(void **)((uintptr_t)thisptr + Offsets::m_pStatList);
 	int m_nStatHeight = *(int *)((uintptr_t)thisptr + Offsets::m_nStatHeight);
 
-	const auto &times = AutoSubmitMod::GetTimes();
+	const auto &times = AutoSubmit::GetTimes();
 
 	for (size_t i = 0; i < times.size(); ++i) {
 		const auto &time = times[i];
@@ -921,15 +917,22 @@ bool Client::Init() {
 
 		this->g_ClientDLL->Hook(Client::LevelInitPreEntity_Hook, Client::LevelInitPreEntity, Offsets::LevelInitPreEntity);
 
+		using _GetHud = void *(__cdecl *)(int unk);
+		using _FindElement = void *(__rescall *)(void *thisptr, const char *pName);
+		_GetHud GetHud = nullptr;
+		_FindElement FindElement = nullptr;
+
 		Command leaderboard("+leaderboard");
 		if (!!leaderboard) {
-			using _GetHud = void *(__cdecl *)(int unk);
-			using _FindElement = void *(__rescall *)(void *thisptr, const char *pName);
-
 			auto cc_leaderboard_enable = (uintptr_t)leaderboard.ThisPtr()->m_pCommandCallback;
-			auto GetHud = Memory::Read<_GetHud>(cc_leaderboard_enable + Offsets::GetHud);
-			auto FindElement = Memory::Read<_FindElement>(cc_leaderboard_enable + Offsets::FindElement);
+			GetHud = Memory::Read<_GetHud>(cc_leaderboard_enable + Offsets::GetHud);
+			FindElement = Memory::Read<_FindElement>(cc_leaderboard_enable + Offsets::FindElement);
+		} else if (Offsets::GetHudSig && Offsets::FindElementSig) {
+			GetHud = Memory::Scan<_GetHud>(this->Name(), Offsets::GetHudSig);
+			FindElement = Memory::Scan<_FindElement>(this->Name(), Offsets::FindElementSig);
+		}
 
+		if (GetHud && FindElement) {
 			auto CHUDChallengeStats = FindElement(GetHud(-1), "CHUDChallengeStats");
 			if (this->g_HUDChallengeStats = Interface::Create(CHUDChallengeStats)) {
 				this->g_HUDChallengeStats->Hook(Client::GetName_Hook, Client::GetName, Offsets::GetName);
@@ -972,7 +975,7 @@ bool Client::Init() {
 				console->DevWarning("Failed to hook CHudSaveStatus\n");
 			}
 		} else {
-			console->DevWarning("Failed to hook +leaderboard\n");
+			console->DevWarning("Failed to hook GetHud and FindElement\n");
 		}
 
 		this->IN_ActivateMouse = this->g_ClientDLL->Original<_IN_ActivateMouse>(Offsets::IN_ActivateMouse);
@@ -1100,10 +1103,8 @@ bool Client::Init() {
 		g_OnCommandHook.SetFunc(Client::OnCommand);
 	}
 
-	if (!sar.game->Is(SourceGame_INFRA)) {
-		Client::GetChapterProgress = (decltype(Client::GetChapterProgress))Memory::Scan(this->Name(), Offsets::GetChapterProgress);
-		g_GetChapterProgressHook.SetFunc(Client::GetChapterProgress);
-	}
+	Client::GetChapterProgress = (decltype(Client::GetChapterProgress))Memory::Scan(this->Name(), Offsets::GetChapterProgress);
+	g_GetChapterProgressHook.SetFunc(Client::GetChapterProgress);
 
 	cl_showpos = Variable("cl_showpos");
 	cl_sidespeed = Variable("cl_sidespeed");

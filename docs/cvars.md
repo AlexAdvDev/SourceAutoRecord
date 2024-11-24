@@ -124,7 +124,7 @@
 |sar_cam_setpos|cmd|sar_cam_setpos \<x> \<y> \<z> - sets camera position (requires camera Drive Mode)|
 |sar_cfg_message|cmd|sar_cfg_message \<message> - sends a config message to the other player in coop|
 |sar_challenge_autostop|0|Automatically stops recording demos when the leaderboard opens after a CM run. If 2, automatically appends the run time to the demo name.|
-|sar_challenge_autosubmit_reload_api_key|cmd|sar_challenge_autosubmit_reload_api_key - reload the board.portal2.sr API key from its file.|
+|sar_challenge_autosubmit_reload_api_key|cmd|sar_challenge_autosubmit_reload_api_key - reload the boards API key from its file.|
 |sar_chat|cmd|sar_chat - open the chat HUD|
 |sar_cheat_hud|1|Display a warning in the HUD when cheats are active. 0 = disable, 1 = display if sv_cheats off, 2 = display always|
 |sar_cheat_hud_x|-4|X position of the cheat warning HUD.|
@@ -184,6 +184,14 @@
 |sar_dump_server_datamap|cmd|sar_dump_server_datamap - dumps server datamap to a file|
 |sar_echo|cmd|sar_echo \<color> \<string...> - echo a string to console with a given color|
 |sar_echo_nolf|cmd|sar_echo_nolf \<color> \<string...> - echo a string to console with a given color and no trailing line feed|
+|sar_ehm_hud|0|Enables EHM debug HUD.|
+|sar_ehm_hud_autofill|1|Whether to listen for changed slot and use it to replace the oldest one in EHM debug HUD.|
+|sar_ehm_hud_font|2|Font used by the EHM debug HUD.|
+|sar_ehm_hud_list_length|20|How many slots to show in the EHM debug HUD.|
+|sar_ehm_hud_push|cmd|sar_ehm_hud_push \<slot> - push slot on top of the EHM debug HUD.|
+|sar_ehm_hud_refill|cmd|sar_ehm_hud_refill [slot] - fills EHM debug HUD with slots starting from a given one.|
+|sar_ehm_hud_x|-10|The X position of the EHM debug HUD.|
+|sar_ehm_hud_y|10|The Y position of the EHM debug HUD.|
 |sar_ei_hud|0|Draws entity inspection data.|
 |sar_ei_hud_font_color|255 255 255 255|RGBA font color of entity inspection HUD when not recording.|
 |sar_ei_hud_font_color2|153 23 9 255|RGBA font color of entity inspection HUD when recording.|
@@ -191,6 +199,7 @@
 |sar_ei_hud_x|0|X offset of entity inspection HUD.|
 |sar_ei_hud_y|0|Y offset of entity inspection HUD.|
 |sar_ei_hud_z|0|Z offset of entity inspection HUD.|
+|sar_ensure_slope_boost|0|Ensures a successful slope boost.|
 |sar_ent_info|cmd|sar_ent_info [selector] - show info about the entity under the crosshair or with the given name|
 |sar_ent_slot_serial|cmd|sar_ent_slot_serial \<id> [value] - prints entity slot serial number, or sets it if additional parameter is specified.<br>Banned in most categories, check with the rules before use!|
 |sar_exit|cmd|sar_exit - removes all function hooks, registered commands and unloads the module|
@@ -275,7 +284,7 @@
 |sar_hud_timer|0|Draws current value of timer.|
 |sar_hud_toggle_text|cmd|sar_hud_toggle_text \<id> - toggles the nth text value in the HUD|
 |sar_hud_trace|0|Draws info about current trace bbox tick.|
-|sar_hud_velang|0|Draw the angle of the player's horizontal velocity vector.|
+|sar_hud_velang|0|Draw the angle of the player's horizontal velocity vector.<br>0 = Default,<br>1 = yaw,<br>2 = pitch yaw.|
 |sar_hud_velocity|0|Draws velocity of the client.<br>0 = Default,<br>1 = X, Y, Z<br>2 = X:Y<br>3 = X:Y, Z<br>4 = X:Y:Z<br>5 = X, Y, X:Y, Z|
 |sar_hud_velocity_peak|0|Draws last saved velocity peak.|
 |sar_hud_velocity_precision|2|Precision of velocity HUD numbers.|
@@ -293,7 +302,7 @@
 |sar_ihud_set_background|cmd|sar_ihud_set_background \<path> \<grid x> \<grid y> \<grid w> \<grid h>|
 |sar_ihud_setpos|cmd|sar_ihud_setpos \<top\|center\|bottom\|y\|y%> \<left\|center\|right\|x\|x%> - automatically sets the position of input HUD.|
 |sar_ihud_x|2|X position of input HUD.|
-|sar_ihud_y|2|Y position of input HUD.|
+|sar_ihud_y|-2|Y position of input HUD.|
 |sar_import_stats|cmd|sar_import_stats \<filePath> - import the stats from the specified .csv file|
 |sar_inspection_export|cmd|sar_inspection_export \<file_name> - saves recorded entity data to a csv file|
 |sar_inspection_index|cmd|sar_inspection_index - sets entity index for inspection|
@@ -316,6 +325,12 @@
 |sar_lphud_setpos|cmd|sar_lphud_setpos \<top\|center\|bottom\|y\|y%> \<left\|center\|right\|x\|x%> - automatically sets the position of least portals HUD.|
 |sar_lphud_x|-10|x pos of lp counter.|
 |sar_lphud_y|-10|y pos of lp counter.|
+|sar_metronome|0|Enable metronome.|
+|sar_metronome_beats|4|Set the number of beats per bar for the metronome.|
+|sar_metronome_bpm|60|Set the beats per minute for the metronome.|
+|sar_metronome_sound|ui/ui_coop_hud_focus_01|Set the sound to play for the metronome.|
+|sar_metronome_sound_bar|ui/ui_coop_hud_unfocus_01|Set the sound to play for the metronome bar.|
+|sar_metronome_volume|1|Set the volume for the metronome.|
 |sar_minimap_load|cmd|sar_minimap_load \<filename> - load a minimap from a JSON file.|
 |sar_minimap_max_height|1000|The maximum height of the minimap.|
 |sar_minimap_max_width|500|The maximum width of the minimap.|
@@ -326,6 +341,7 @@
 |sar_mtrigger_legacy_format|!seg -> !tt (!st)|Formatting of the text that is displayed in the chat (!map - for map name, !seg - for segment name, !tt - for total time, !st - for split time).|
 |sar_mtrigger_legacy_textcolor|255 176 0|The color of the text that is displayed in the chat.|
 |sar_netmessage_debug|0|Debug NetMessages.|
+|sar_netmessage_enable|1|Enable sending NetMessages. Disabling this can break other features.|
 |sar_nextdemo|cmd|sar_nextdemo - plays the next demo in demo queue|
 |sar_on_cfg_message|cmd|sar_on_cfg_message \<command> [args]... - registers a command to be run when partner sends a custom message (_sar_cfg_message svar)|
 |sar_on_cfg_message_clear|cmd|sar_on_cfg_message_clear - clears commands registered on event "cfg_message"|
@@ -587,6 +603,7 @@
 |sar_time_demo|cmd|sar_time_demo \<demo_name> - parses a demo and prints some information about it|
 |sar_time_demo_dev|0|Printing mode when using sar_time_demo.<br>0 = Default,<br>1 = Console commands,<br>2 = Console commands & packets.|
 |sar_time_demos|cmd|sar_time_demos \<demo_name> [demo_name2]... - parses multiple demos and prints the total sum of them|
+|sar_timeline_show_completed|0|Only show speedrun starts with matching finishes.|
 |sar_timeline_splits|1|Add split markers to the Steam Timeline.|
 |sar_timer_always_running|1|Timer will save current value when disconnecting.|
 |sar_timer_result|cmd|sar_timer_result - prints result of timer|

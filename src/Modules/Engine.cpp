@@ -191,7 +191,9 @@ bool Engine::IsGamePaused() {
 }
 
 int Engine::GetMapIndex(const std::string map) {
-	auto it = std::find(Game::mapNames.begin(), Game::mapNames.end(), map);
+	std::string map_lower = map;
+	std::transform(map_lower.begin(), map_lower.end(), map_lower.begin(), tolower);
+	auto it = std::find(Game::mapNames.begin(), Game::mapNames.end(), map_lower);
 	if (it != Game::mapNames.end()) {
 		return std::distance(Game::mapNames.begin(), it);
 	} else {
@@ -215,8 +217,10 @@ std::string Engine::GetCurrentMapName() {
 }
 
 std::string Engine::GetMapTitle(std::string map) {
-	auto it = std::find_if(Game::maps.begin(), Game::maps.end(), [&map](const MapData &data) {
-		return data.fileName == map;
+	std::string map_lower = map;
+	std::transform(map_lower.begin(), map_lower.end(), map_lower.begin(), tolower);
+	auto it = std::find_if(Game::maps.begin(), Game::maps.end(), [&map_lower](const MapData &data) {
+		return data.fileName == map_lower;
 	});
 	if (it != Game::maps.end()) {
 		return it->displayName;
@@ -732,11 +736,10 @@ void Host_AccumulateTime_Detour(float dt) {
 		} else {
 			if (sar_frametime_debug.GetBool()) console->Print("Host_AccumulateTime: %f (capped to %f)\n", *host_frametime_unbounded, *host_frametime);
 			if (engine->demorecorder->isRecordingDemo && g_loadstate == LOADED) {
-				char *data = new char[5];
+				char data[5];
 				data[0] = 0x0F;
 				*(float *)(data + 1) = *host_frametime_unbounded;
 				engine->demorecorder->RecordData(data, sizeof data);
-				delete[] data;
 			}
 		}
 	} else {
@@ -1027,7 +1030,7 @@ bool Engine::Init() {
 			this->cl->Hook(Engine::SetSignonState_Hook, Engine::SetSignonState, Offsets::Disconnect - 1);
 			this->cl->Hook(Engine::Disconnect_Hook, Engine::Disconnect, Offsets::Disconnect);
 #if _WIN32
-			auto IServerMessageHandler_VMT = Memory::Deref<uintptr_t>((uintptr_t)this->cl->ThisPtr() + IServerMessageHandler_VMT_Offset);
+			auto IServerMessageHandler_VMT = Memory::Deref<uintptr_t>((uintptr_t)this->cl->ThisPtr() + Offsets::IServerMessageHandler);
 			auto ProcessTick = Memory::Deref<uintptr_t>(IServerMessageHandler_VMT + sizeof(uintptr_t) * Offsets::ProcessTick);
 #else
 			auto ProcessTick = this->cl->Original(Offsets::ProcessTick);

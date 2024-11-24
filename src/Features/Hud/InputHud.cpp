@@ -15,7 +15,7 @@
 
 Variable sar_ihud("sar_ihud", "0", 0, 1, "Enables or disables movement inputs HUD of client.\n", FCVAR_DONTRECORD);
 Variable sar_ihud_x("sar_ihud_x", "2", "X position of input HUD.\n", FCVAR_DONTRECORD);
-Variable sar_ihud_y("sar_ihud_y", "2", "Y position of input HUD.\n", FCVAR_DONTRECORD);
+Variable sar_ihud_y("sar_ihud_y", "-2", "Y position of input HUD.\n", FCVAR_DONTRECORD);
 Variable sar_ihud_grid_padding("sar_ihud_grid_padding", "2", 0, "Padding between grid squares of input HUD.\n", FCVAR_DONTRECORD);
 Variable sar_ihud_grid_size("sar_ihud_grid_size", "60", 0, "Grid square size of input HUD.\n", FCVAR_DONTRECORD);
 Variable sar_ihud_analog_image_scale("sar_ihud_analog_image_scale", "0.6", 0, 1, "Scale of analog input images against max extent.\n", FCVAR_DONTRECORD);
@@ -393,7 +393,7 @@ void InputHud::ApplyPreset(const char* preset, bool start) {
 		PARAM("moveleft", "text", "A");
 		PARAM("moveright", "text", "D");
 		PARAM("jump", "text", "Jump");
-		PARAM("use", "text", "+use");
+		PARAM("use", "text", "Use");
 		PARAM("duck", "text", "Duck");
 		PARAM("attack", "text", "LMB");
 		PARAM("attack2", "text", "RMB");
